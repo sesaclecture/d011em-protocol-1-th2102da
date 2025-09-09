@@ -13,9 +13,22 @@ UART 과제
 
 import sys
 import time
-
 from gpiozero import LED, Button
 from serial import Serial
+
+from gpiozero import Device
+from gpiozero.pins.mock import MockFactory
+
+Device.pin_factory = MockFactory()  
+
+led12 = LED(12)
+btn13 = Button(13, pull_up=True)
+
+led = LED(18)
+btn = Button(2, pull_up = True)
+prev = btn.is_pressed
+
+
 
 
 def blink_led() -> None:
@@ -25,8 +38,16 @@ def blink_led() -> None:
     - 종료시 LED는 OFF 상태
     """
     # TODO: blink_led 구현
+    count = 0
+    while count < 10:
+        led.on()
+        time.sleep(1)
+        led.off()
+        time.sleep(1)
+        count+=1
+    led.off()
 
-    raise NotImplementedError
+
 
 
 def check_to_input_button() -> None:
@@ -39,8 +60,26 @@ def check_to_input_button() -> None:
     - 버튼 입력을 10번 받았으면 종료.
     """
     # TODO: check_to_input_button 구현
+    prev = btn.is_pressed
+    count = 0
+    while count < 10:
+        cur = btn.is_pressed
 
-    raise NotImplementedError
+        if cur != prev:
+            if cur:
+                print("pressed")
+
+            
+            else:
+                print("released")
+            
+            count += 1
+            prev = cur
+        
+        time.sleep(0.005)
+
+
+
 
 
 def blink_led_through_button() -> None:
@@ -54,9 +93,30 @@ def blink_led_through_button() -> None:
     """
     # TODO: blink_led_through_button 구현
     led = LED(12)
-    led.on()
+    button = Button(13, pull_up = True)
+    count = 0
 
-    raise NotImplementedError
+    prev = btn13.is_pressed
+    while count<10:
+        cur = btn13.is_pressed
+        if cur != prev:
+            if cur:
+                count +=1
+            
+        prev = cur
+        
+        if cur: #눌려있는동안
+            led12.on()
+            time.sleep(0.05)
+            led12.off()
+            
+            time.sleep(0.05)
+        else:
+            time.sleep(0.005)
+    led12.off()
+
+
+
 
 
 def transmit_msg() -> None:
@@ -66,8 +126,12 @@ def transmit_msg() -> None:
     - 개행을 붙여 전송 (수신/테스트 편의)
     """
     # TODO: blink_led_through_button 구현
+    ser = Serial("/dev/ttyAMA3", 115200, timeout=1)
 
-    raise NotImplementedError
+    for i in range(10):
+        ser.write(f"Hello World! {i}\n".encode())
+        time.sleep(1)
+    ser.close()
 
 
 def receive_msg() -> None:
@@ -76,8 +140,13 @@ def receive_msg() -> None:
     - 'exit' (대소문자 무시) 라인을 수신하면 함수 종료
     """
     # TODO: blink_led_through_button 구현
-
-    raise NotImplementedError
+    ser = Serial("/dev/ttyAMA3", 115200, timeout=1)
+    while True:
+        line = ser.readline().decode().strip()
+        if line.lower() == "exit":
+            break
+        print(line)
+    ser.close()
 
 
 if __name__ == "__main__":
